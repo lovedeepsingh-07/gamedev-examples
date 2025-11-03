@@ -74,35 +74,18 @@ int main() {
 
     // testing
     registry.progress();
-    printf("------progress-end------\n");
     registry.add<ActiveScene, MainMenu_Scene>();
-    printf("------scene-change------\n");
     registry.progress();
-    printf("------progress-end------\n");
-
     registry.add<ActiveScene, Game_Scene>();
-    printf("------scene-change------\n");
     registry.progress();
-    printf("------progress-end------\n");
     registry.progress();
-    printf("------progress-end------\n");
     registry.progress();
-    printf("------progress-end------\n");
-
     registry.add<ActiveScene, MainMenu_Scene>();
-    printf("------scene-change------\n");
-
     registry.progress();
-    printf("------progress-end------\n");
-
     registry.add<ActiveScene, MainMenu_Scene>();
-    printf("------no-scene-change------\n");
     registry.progress();
-    printf("------progress-end------\n");
     registry.progress();
-    printf("------progress-end------\n");
     registry.progress();
-    printf("------progress-end------\n");
 
     return 0;
 }
