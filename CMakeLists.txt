@@ -21,7 +21,9 @@ endif()
 
 add_executable(${EXAMPLE_NAME} ${SRC_FILES})
 
-target_include_directories(${EXAMPLE_NAME} PRIVATE)
+target_include_directories(${EXAMPLE_NAME} PRIVATE
+	common/include
+)
 
 target_link_libraries(${EXAMPLE_NAME} PRIVATE
 	raylib

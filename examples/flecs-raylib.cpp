@@ -1,42 +1,17 @@
+#include "components.hpp"
+#include "constants.hpp"
 #include <cstdio>
 #include <flecs.h>
 #include <raylib.h>
 #include <string>
 
-const constexpr int SCREEN_WIDTH = 1280;
-const constexpr int SCREEN_HEIGHT = 720;
-const constexpr int TARGET_FPS = 90;
-
-namespace components {
-    namespace phases {
-        struct OnRender_Start {};
-        struct OnRender_Game {};
-        struct OnRender_UI {};
-        struct OnRender_Finish {};
-    }
-    struct Position {
-        float x;
-        float y;
-    };
-    struct Rectangle {
-        float width;
-        float height;
-        Color color;
-    };
-    struct Text {
-        std::string text;
-        int font_size;
-        Color color;
-    };
-}
-
 int main() {
-    InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "flecs-raylib");
-    SetTargetFPS(TARGET_FPS);
+    InitWindow(constants::SCREEN_WIDTH, constants::SCREEN_HEIGHT, "flecs-raylib");
+    SetTargetFPS(constants::TARGET_FPS);
     SetExitKey(0);
 
     flecs::world registry;
-    registry.set_target_fps(TARGET_FPS);
+    registry.set_target_fps(constants::TARGET_FPS);
 
     registry.component<components::Position>();
     registry.component<components::Rectangle>();

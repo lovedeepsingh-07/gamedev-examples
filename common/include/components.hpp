@@ -1,0 +1,43 @@
+#include <flecs.h>
+#include <raylib.h>
+#include <string>
+
+namespace components {
+    struct SceneRoot {};
+    struct ActiveScene {};
+    namespace scenes {
+        struct Common {};
+        struct MainMenu {};
+        struct Game {};
+    };
+    namespace pipelines {
+        struct MainMenu {
+            flecs::entity pipeline;
+        };
+        struct Game {
+            flecs::entity pipeline;
+        };
+    };
+    namespace phases {
+        struct Phase {};
+        struct OnUpdate {};
+        struct OnRender_Start {};
+        struct OnRender_Game {};
+        struct OnRender_UI {};
+        struct OnRender_Finish {};
+    }
+    struct Position {
+        float x;
+        float y;
+    };
+    struct Rectangle {
+        float width;
+        float height;
+        Color color;
+    };
+    struct Text {
+        std::string text;
+        int font_size;
+        Color color;
+    };
+}

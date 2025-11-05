@@ -1,0 +1,5 @@
+namespace constants {
+    const constexpr int SCREEN_WIDTH = 1280;
+    const constexpr int SCREEN_HEIGHT = 720;
+    const constexpr int TARGET_FPS = 90;
+}

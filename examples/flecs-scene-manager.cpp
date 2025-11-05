@@ -1,31 +1,20 @@
+#include "components.hpp"
+#include "constants.hpp"
 #include <cstdio>
 #include <flecs.h>
 
-// components
-struct SceneRoot {};
-struct ActiveScene {};
-struct Common_Scene {};
-struct MainMenu_Scene {};
-struct Game_Scene {};
-struct MainMenu_Pipeline {
-    flecs::entity pipeline;
-};
-struct Game_Pipeline {
-    flecs::entity pipeline;
-};
-
 // observer callbacks
-void MainMenu_OnEnter(flecs::iter& iter, size_t, ActiveScene) {
+void MainMenu_OnEnter(flecs::iter& iter, size_t, components::ActiveScene) {
     flecs::world registry = iter.world();
     printf("MainMenu::on_enter\n");
 
-    registry.set_pipeline(registry.get<MainMenu_Pipeline>().pipeline);
+    registry.set_pipeline(registry.get<components::pipelines::MainMenu>().pipeline);
 }
-void Game_OnEnter(flecs::iter& iter, size_t, ActiveScene) {
+void Game_OnEnter(flecs::iter& iter, size_t, components::ActiveScene) {
     flecs::world registry = iter.world();
     printf("Game::on_enter\n");
 
-    registry.set_pipeline(registry.get<Game_Pipeline>().pipeline);
+    registry.set_pipeline(registry.get<components::pipelines::Game>().pipeline);
 }
 
 int main() {
@@ -33,56 +22,61 @@ int main() {
     registry.set_target_fps(90);
 
     // register components
-    registry.component<SceneRoot>();
-    registry.component<ActiveScene>().add(flecs::Relationship).add(flecs::Exclusive);
-    registry.component<MainMenu_Scene>().add(flecs::Target);
-    registry.component<Game_Scene>().add(flecs::Target);
-    registry.component<MainMenu_Pipeline>().add(flecs::Singleton);
-    registry.component<Game_Pipeline>().add(flecs::Singleton);
+    registry.component<components::SceneRoot>();
+    registry.component<components::ActiveScene>().add(flecs::Relationship).add(flecs::Exclusive);
+    registry.component<components::scenes::MainMenu>().add(flecs::Target);
+    registry.component<components::scenes::Game>().add(flecs::Target);
+    registry.component<components::pipelines::MainMenu>().add(flecs::Singleton);
+    registry.component<components::pipelines::Game>().add(flecs::Singleton);
 
     // add pipelines
-    registry.set(MainMenu_Pipeline{ .pipeline = registry.pipeline()
-                                                    .with(flecs::System)
-                                                    .with<MainMenu_Scene>()
-                                                    .oper(flecs::Or)
-                                                    .with<Common_Scene>()
-                                                    .build() });
-    registry.set(Game_Pipeline{ .pipeline = registry.pipeline()
-                                                .with(flecs::System)
-                                                .with<Game_Scene>()
-                                                .oper(flecs::Or)
-                                                .with<Common_Scene>()
-                                                .build() });
+    registry.set(components::pipelines::MainMenu{
+        .pipeline = registry.pipeline()
+                        .with(flecs::System)
+                        .with<components::scenes::MainMenu>()
+                        .oper(flecs::Or)
+                        .with<components::scenes::Common>()
+                        .build() });
+    registry.set(components::pipelines::Game{
+        .pipeline = registry.pipeline()
+                        .with(flecs::System)
+                        .with<components::scenes::Game>()
+                        .oper(flecs::Or)
+                        .with<components::scenes::MainMenu>()
+                        .build() });
 
     // setup observers
-    registry.observer<ActiveScene>()
+    registry.observer<components::ActiveScene>()
         .event(flecs::OnAdd)
-        .second<MainMenu_Scene>()
+        .second<components::scenes::MainMenu>()
         .each(MainMenu_OnEnter);
-    registry.observer<ActiveScene>().event(flecs::OnAdd).second<Game_Scene>().each(Game_OnEnter);
+    registry.observer<components::ActiveScene>()
+        .event(flecs::OnAdd)
+        .second<components::scenes::Game>()
+        .each(Game_OnEnter);
 
     // setup systems
-    registry.system().kind<Common_Scene>().run([](flecs::iter& iter) {
+    registry.system().kind<components::scenes::MainMenu>().run([](flecs::iter& iter) {
         printf("common system running\n");
     });
-    registry.system().kind<MainMenu_Scene>().run([](flecs::iter& iter) {
+    registry.system().kind<components::scenes::MainMenu>().run([](flecs::iter& iter) {
         printf("MainMenu system running\n");
     });
-    registry.system().kind<Game_Scene>().run([](flecs::iter& iter) {
+    registry.system().kind<components::scenes::Game>().run([](flecs::iter& iter) {
         printf("Game system running\n");
     });
 
     // testing
     registry.progress();
-    registry.add<ActiveScene, MainMenu_Scene>();
+    registry.add<components::ActiveScene, components::scenes::MainMenu>();
     registry.progress();
-    registry.add<ActiveScene, Game_Scene>();
+    registry.add<components::ActiveScene, components::scenes::Game>();
     registry.progress();
     registry.progress();
     registry.progress();
-    registry.add<ActiveScene, MainMenu_Scene>();
+    registry.add<components::ActiveScene, components::scenes::MainMenu>();
     registry.progress();
-    registry.add<ActiveScene, MainMenu_Scene>();
+    registry.add<components::ActiveScene, components::scenes::MainMenu>();
     registry.progress();
     registry.progress();
     registry.progress();

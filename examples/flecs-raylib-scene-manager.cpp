@@ -1,50 +1,9 @@
+#include "components.hpp"
+#include "constants.hpp"
 #include <cstdio>
 #include <flecs.h>
 #include <raylib.h>
 #include <string>
-
-const constexpr int SCREEN_WIDTH = 1280;
-const constexpr int SCREEN_HEIGHT = 720;
-const constexpr int TARGET_FPS = 90;
-
-namespace components {
-    struct SceneRoot {};
-    struct ActiveScene {};
-    namespace scenes {
-        struct Common {};
-        struct MainMenu {};
-        struct Game {};
-    };
-    namespace pipelines {
-        struct MainMenu {
-            flecs::entity pipeline;
-        };
-        struct Game {
-            flecs::entity pipeline;
-        };
-    };
-    namespace phases {
-        struct Phase {};
-        struct OnUpdate {};
-        struct OnRender_Game {};
-        struct OnRender_UI {};
-        struct OnFinishRender {};
-    }
-    struct Position {
-        float x;
-        float y;
-    };
-    struct Rectangle {
-        float width;
-        float height;
-        Color color;
-    };
-    struct Text {
-        std::string text;
-        int font_size;
-        Color color;
-    };
-}
 
 void MainMenu_OnEnter(flecs::iter& iter, size_t, components::ActiveScene) {
     flecs::world registry = iter.world();
@@ -92,12 +51,12 @@ void Game_OnEnter(flecs::iter& iter, size_t, components::ActiveScene) {
 }
 
 int main() {
-    InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "flecs-raylib");
-    SetTargetFPS(TARGET_FPS);
+    InitWindow(constants::SCREEN_WIDTH, constants::SCREEN_HEIGHT, "flecs-raylib");
+    SetTargetFPS(constants::TARGET_FPS);
     SetExitKey(0);
 
     flecs::world registry;
-    registry.set_target_fps(TARGET_FPS);
+    registry.set_target_fps(constants::TARGET_FPS);
     registry.entity("scene_root").set_alias("scene_root").add<components::SceneRoot>(); // setup the SceneRoot entity, this will act as the parent of all the entities for a particular scene
 
     // ------ register components ------
@@ -120,7 +79,7 @@ int main() {
     registry.component<components::phases::OnRender_UI>()
         .add<components::phases::Phase>()
         .depends_on<components::phases::OnRender_Game>();
-    registry.entity<components::phases::OnFinishRender>()
+    registry.entity<components::phases::OnRender_Finish>()
         .add<components::phases::Phase>()
         .depends_on<components::phases::OnRender_UI>();
 
@@ -198,7 +157,7 @@ int main() {
         })
         .add<components::scenes::Game>();
     registry.system()
-        .kind<components::phases::OnFinishRender>()
+        .kind<components::phases::OnRender_Finish>()
         .run([](flecs::iter& iter) { EndDrawing(); })
         .add<components::scenes::Common>();
     registry.system()
