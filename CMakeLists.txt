@@ -19,10 +19,13 @@ else()
 	endif()
 endif()
 
-add_executable(${EXAMPLE_NAME} ${SRC_FILES})
+file(GLOB_RECURSE COMMON_SRC_FILES common/src/*.cpp)
+
+add_executable(${EXAMPLE_NAME} ${SRC_FILES} ${COMMON_SRC_FILES})
 
 target_include_directories(${EXAMPLE_NAME} PRIVATE
 	common/include
+    ${EXTERNAL_DIR}/clay
 )
 
 target_link_libraries(${EXAMPLE_NAME} PRIVATE

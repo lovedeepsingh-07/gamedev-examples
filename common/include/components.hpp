@@ -1,3 +1,4 @@
+#include <array>
 #include <flecs.h>
 #include <raylib.h>
 #include <string>
@@ -24,8 +25,14 @@ namespace components {
         struct OnRender_Start {};
         struct OnRender_Game {};
         struct OnRender_UI {};
+        struct OnRender_Debug {};
         struct OnRender_Finish {};
     }
+    namespace global_options {
+        struct GameFonts {
+            std::array<Font, 1> font_list;
+        };
+    };
     struct Position {
         float x;
         float y;
@@ -40,4 +47,5 @@ namespace components {
         int font_size;
         Color color;
     };
+    void setup(flecs::world& registry);
 }

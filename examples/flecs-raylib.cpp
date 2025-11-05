@@ -12,19 +12,7 @@ int main() {
 
     flecs::world registry;
     registry.set_target_fps(constants::TARGET_FPS);
-
-    registry.component<components::Position>();
-    registry.component<components::Rectangle>();
-    registry.component<components::Text>();
-
-    registry.entity<components::phases::OnRender_Start>().add(flecs::Phase).depends_on(flecs::OnStore);
-    registry.entity<components::phases::OnRender_Game>().add(flecs::Phase).depends_on(flecs::OnStore);
-    registry.entity<components::phases::OnRender_UI>()
-        .add(flecs::Phase)
-        .depends_on<components::phases::OnRender_Game>();
-    registry.entity<components::phases::OnRender_Finish>()
-        .add(flecs::Phase)
-        .depends_on<components::phases::OnRender_UI>();
+    components::setup(registry);
 
     registry.entity()
         .set(components::Position{ .x = 100, .y = 100 })
@@ -34,7 +22,12 @@ int main() {
         .set(components::Text{
             .text = std::string("hello, world!"), .font_size = 24, .color = BLUE });
 
-    // ------ setup systems ------
+    registry.set_pipeline(registry.pipeline()
+                              .with(flecs::System)
+                              .with<components::phases::Phase>()
+                              .cascade(flecs::DependsOn)
+                              .build());
+
     // NOTE: the system definition order is jumbled in order to specify the working of custom phases
     registry.system().kind<components::phases::OnRender_Finish>().run(
         [](flecs::iter& iter) { EndDrawing(); }
