@@ -1,4 +1,4 @@
-CMAKE_BUILD_TYPE := "Release"
+CMAKE_BUILD_TYPE := "Debug"
 
 default:
 	just -l

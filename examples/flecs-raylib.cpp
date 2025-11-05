@@ -3,23 +3,17 @@
 #include <raylib.h>
 #include <string>
 
-// OnLoad - load data into your registry, keyboard/mouse inputs
-// PostLoad - associate key presses with higher level actions
-// PreUpdate - (after-loading/before-updating), like prepare/clean the frame
-// OnUpdate - all the game-logic (default for adding systems)
-// OnValidate - validate updates, like collision-detection
-// PostUpdate - apply changes based on validations made in onValidate
-// PreStore - (after-update/before-rendering)
-// OnStore - begin rendering
-// 	- Render_Game - rendering textures,3d models, and effects
-// 	- Render_UI - render the UI elements
-// 	- Finish Render - stop rendering
-
 const constexpr int SCREEN_WIDTH = 1280;
 const constexpr int SCREEN_HEIGHT = 720;
 const constexpr int TARGET_FPS = 90;
 
 namespace components {
+    namespace phases {
+        struct OnRender_Start {};
+        struct OnRender_Game {};
+        struct OnRender_UI {};
+        struct OnRender_Finish {};
+    }
     struct Position {
         float x;
         float y;
@@ -34,11 +28,6 @@ namespace components {
         int font_size;
         Color color;
     };
-    namespace phases {
-        struct Render_Game {};
-        struct Render_UI {};
-        struct Finish_Render {};
-    }
 }
 
 int main() {
@@ -53,13 +42,14 @@ int main() {
     registry.component<components::Rectangle>();
     registry.component<components::Text>();
 
-    registry.entity<components::phases::Render_Game>().add(flecs::Phase).add(flecs::DependsOn, flecs::OnStore);
-    registry.entity<components::phases::Render_UI>()
+    registry.entity<components::phases::OnRender_Start>().add(flecs::Phase).depends_on(flecs::OnStore);
+    registry.entity<components::phases::OnRender_Game>().add(flecs::Phase).depends_on(flecs::OnStore);
+    registry.entity<components::phases::OnRender_UI>()
         .add(flecs::Phase)
-        .add(flecs::DependsOn, registry.id<components::phases::Render_Game>());
-    registry.entity<components::phases::Finish_Render>()
+        .depends_on<components::phases::OnRender_Game>();
+    registry.entity<components::phases::OnRender_Finish>()
         .add(flecs::Phase)
-        .add(flecs::DependsOn, registry.id<components::phases::Render_UI>());
+        .depends_on<components::phases::OnRender_UI>();
 
     registry.entity()
         .set(components::Position{ .x = 100, .y = 100 })
@@ -69,25 +59,27 @@ int main() {
         .set(components::Text{
             .text = std::string("hello, world!"), .font_size = 24, .color = BLUE });
 
-    registry.system().kind(flecs::OnStore).each([](flecs::entity curr_entity) {
-        BeginDrawing();
-        ClearBackground(BLACK);
-    });
+    // ------ setup systems ------
+    // NOTE: the system definition order is jumbled in order to specify the working of custom phases
+    registry.system().kind<components::phases::OnRender_Finish>().run(
+        [](flecs::iter& iter) { EndDrawing(); }
+    );
     registry.system<components::Rectangle, components::Position>()
-        .kind<components::phases::Render_Game>()
+        .kind<components::phases::OnRender_Game>()
         .each([](flecs::entity curr_entity, const components::Rectangle& rect,
                  const components::Position& pos) {
             DrawRectangle((int)pos.x, (int)pos.y, (int)rect.width, (int)rect.height, rect.color);
         });
+    registry.system().kind<components::phases::OnRender_Start>().run([](flecs::iter& iter) {
+        BeginDrawing();
+        ClearBackground(BLACK);
+    });
     registry.system<components::Text, components::Position>()
-        .kind<components::phases::Render_UI>()
+        .kind<components::phases::OnRender_UI>()
         .each([](flecs::entity curr_entity, const components::Text& text,
                  const components::Position& pos) {
             DrawText(text.text.c_str(), (int)pos.x, (int)pos.y, text.font_size, text.color);
         });
-    registry.system().kind<components::phases::Finish_Render>().each(
-        [](flecs::entity curr_entity) { EndDrawing(); }
-    );
 
     registry.app().enable_stats().enable_rest().run();
 

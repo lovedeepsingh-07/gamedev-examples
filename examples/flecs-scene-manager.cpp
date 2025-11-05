@@ -62,13 +62,13 @@ int main() {
     registry.observer<ActiveScene>().event(flecs::OnAdd).second<Game_Scene>().each(Game_OnEnter);
 
     // setup systems
-    registry.system().kind<Common_Scene>().each([](flecs::entity curr_entity) {
+    registry.system().kind<Common_Scene>().run([](flecs::iter& iter) {
         printf("common system running\n");
     });
-    registry.system().kind<MainMenu_Scene>().each([](flecs::entity curr_entity) {
+    registry.system().kind<MainMenu_Scene>().run([](flecs::iter& iter) {
         printf("MainMenu system running\n");
     });
-    registry.system().kind<Game_Scene>().each([](flecs::entity curr_entity) {
+    registry.system().kind<Game_Scene>().run([](flecs::iter& iter) {
         printf("Game system running\n");
     });
 
