@@ -18,6 +18,18 @@ let
     rev = "b25a31c1a152915cd7dd6796e6592273e5a10aac";
     sha256 = "sha256-6h1aQXqwzPc4oPuid3RfV7W0WzQFUiddjW7OtkKM0P8=";
   };
+  librg = pkgs.fetchFromGitHub {
+    owner = "zpl-c";
+    repo = "librg";
+    rev = "b0b3d502d1271c36edb76e2b55342af52381d597";
+    sha256 = "sha256-gM32FpckR1jRaC498QQ0UrircR1FrBbVVr+e7yEmsC8=";
+  };
+  enet = pkgs.fetchFromGitHub {
+    owner = "zpl-c";
+    repo = "enet";
+    rev = "8647b6eaea881c86471ae29f732620d299fc20d7";
+    sha256 = "sha256-MGAj6Yf2uV0YsbAZHhTMIp3oAU/to9J/4T8VHwNdRhI=";
+  };
 in
 {
   setup_script = ''
@@ -26,5 +38,7 @@ in
     cp -r ${raylib} deps/raylib
     mkdir -p deps/clay
     cp -r ${clay} deps/clay/clay
+    cp -r ${librg} deps/librg
+    cp -r ${enet} deps/enet
   '';
 }

@@ -26,6 +26,8 @@ add_executable(${EXAMPLE_NAME} ${SRC_FILES} ${COMMON_SRC_FILES})
 target_include_directories(${EXAMPLE_NAME} PRIVATE
 	common/include
     ${EXTERNAL_DIR}/clay
+    ${EXTERNAL_DIR}/librg/code
+    ${EXTERNAL_DIR}/enet/include
 )
 
 target_link_libraries(${EXAMPLE_NAME} PRIVATE
