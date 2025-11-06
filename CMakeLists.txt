@@ -8,6 +8,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(EXTERNAL_DIR deps)
 add_subdirectory(${EXTERNAL_DIR}/raylib)
 add_subdirectory(${EXTERNAL_DIR}/flecs)
+add_subdirectory(${EXTERNAL_DIR}/enet)
 
 if (EXISTS "examples/${EXAMPLE_NAME}.cpp")
 	set(SRC_FILES examples/${EXAMPLE_NAME}.cpp)
@@ -26,13 +27,13 @@ add_executable(${EXAMPLE_NAME} ${SRC_FILES} ${COMMON_SRC_FILES})
 target_include_directories(${EXAMPLE_NAME} PRIVATE
 	common/include
     ${EXTERNAL_DIR}/clay
-    ${EXTERNAL_DIR}/librg/code
-    ${EXTERNAL_DIR}/enet/include
+	${EXTERNAL_DIR}/enet/include
 )
 
 target_link_libraries(${EXAMPLE_NAME} PRIVATE
 	raylib
 	flecs::flecs_static
+	enet
 )
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Windows")

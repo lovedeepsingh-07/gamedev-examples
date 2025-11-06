@@ -25,10 +25,10 @@ let
     sha256 = "sha256-gM32FpckR1jRaC498QQ0UrircR1FrBbVVr+e7yEmsC8=";
   };
   enet = pkgs.fetchFromGitHub {
-    owner = "zpl-c";
+    owner = "lsalzman";
     repo = "enet";
-    rev = "8647b6eaea881c86471ae29f732620d299fc20d7";
-    sha256 = "sha256-MGAj6Yf2uV0YsbAZHhTMIp3oAU/to9J/4T8VHwNdRhI=";
+    rev = "8be2368a8001f28db44e81d5939de5e613025023";
+    sha256 = "sha256-YaXdgZIIk1kfDTriKmnEBxRp8yxub3OYfvF0WJl52Ws=";
   };
 in
 {
