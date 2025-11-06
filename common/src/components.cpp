@@ -28,6 +28,8 @@ void components::setup(flecs::world& registry) {
 
     registry.component<components::global_options::GameFonts>().add(flecs::Singleton);
 
+    registry.component<components::events::GameQuitEvent>().add(flecs::Singleton);
+
     registry.component<components::Position>();
     registry.component<components::Rectangle>();
     registry.component<components::Text>();

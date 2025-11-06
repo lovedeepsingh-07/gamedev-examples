@@ -22,6 +22,13 @@ int main() {
         .set(components::Text{
             .text = std::string("hello, world!"), .font_size = 24, .color = BLUE });
 
+    // handle game quit event
+    registry.observer<components::events::GameQuitEvent>().event(flecs::OnAdd).run([](flecs::iter& iter) {
+        flecs::world registry = iter.world();
+        // any logic that should run before quits should happen here, e.g unloading textures, etc
+        registry.quit();
+    });
+
     registry.set_pipeline(registry.pipeline()
                               .with(flecs::System)
                               .with<components::phases::Phase>()
@@ -32,6 +39,12 @@ int main() {
     registry.system().kind<components::phases::OnRender_Finish>().run(
         [](flecs::iter& iter) { EndDrawing(); }
     );
+    registry.system().kind<components::phases::OnUpdate>().run([](flecs::iter& iter) {
+        flecs::world registry = iter.world();
+        if (WindowShouldClose()) {
+            registry.add<components::events::GameQuitEvent>();
+        }
+    });
     registry.system<components::Rectangle, components::Position>()
         .kind<components::phases::OnRender_Game>()
         .each([](flecs::entity curr_entity, const components::Rectangle& rect,

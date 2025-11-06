@@ -66,6 +66,11 @@ int main() {
         .event(flecs::OnAdd)
         .second<components::scenes::Game>()
         .each(Game_OnEnter);
+    registry.observer<components::events::GameQuitEvent>().event(flecs::OnAdd).run([](flecs::iter& iter) {
+        flecs::world registry = iter.world();
+        // any logic that should run before quits should happen here, e.g unloading textures, etc
+        registry.quit();
+    });
 
     registry.set(components::pipelines::MainMenu{
         .pipeline = registry.pipeline()
@@ -103,6 +108,9 @@ int main() {
             }
             if (IsKeyPressed(KEY_TWO)) {
                 registry.add<components::ActiveScene, components::scenes::Game>();
+            }
+            if (WindowShouldClose()) {
+                registry.add<components::events::GameQuitEvent>();
             }
         })
         .add<components::scenes::Common>();

@@ -31,6 +31,26 @@ void MainMenu_UI(flecs::world& registry) {
                 .fontSize = 25,
             })
         );
+        CLAY({ .id = CLAY_ID("main_menu_quit_button"),
+               .layout = { .sizing = { .width = { 120 }, .height = { 20 } },
+                           .padding = CLAY_PADDING_ALL(2),
+                           .childAlignment = { .x = CLAY_ALIGN_X_CENTER, .y = CLAY_ALIGN_Y_CENTER } },
+               .backgroundColor = Clay_Hovered() ? raylib_color_to_clay_color(GRAY)
+                                                 : raylib_color_to_clay_color(WHITE) }) {
+            bool hovering = Clay_Hovered();
+            if (hovering && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+                registry.add<components::events::GameQuitEvent>();
+            }
+            CLAY_TEXT(
+                CLAY_STRING("Quit"),
+                CLAY_TEXT_CONFIG({
+                    .textColor = hovering ? raylib_color_to_clay_color(WHITE)
+                                          : raylib_color_to_clay_color(BLACK),
+                    .fontId = 0,
+                    .fontSize = 25,
+                })
+            );
+        };
     }
 }
 void Game_UI(flecs::world& registry) {
@@ -101,6 +121,7 @@ int main() {
     registry.entity("scene_root").set_alias("scene_root").add<components::SceneRoot>();
     components::setup(registry);
 
+    // ------ clay UI setup ------
     uint64_t clay_required_memory = Clay_MinMemorySize();
     auto clay_memory = Clay_Arena{
         .capacity = static_cast<size_t>(clay_required_memory),
@@ -114,6 +135,7 @@ int main() {
         },
         (Clay_ErrorHandler){ clay_error_handler }
     );
+    // ------ font setup ------
     std::array<Font, 1> font_list{
         LoadFontEx("assets/JetBrainsMonoNLNerdFontComplete-Regular.ttf", 48, NULL, 400)
     };
@@ -130,6 +152,11 @@ int main() {
         .event(flecs::OnAdd)
         .second<components::scenes::Game>()
         .each(Game_OnEnter);
+    registry.observer<components::events::GameQuitEvent>().event(flecs::OnAdd).run([](flecs::iter& iter) {
+        flecs::world registry = iter.world();
+        // any logic that should run before quits should happen here, e.g unloading textures, etc
+        registry.quit();
+    });
 
     registry.set(components::pipelines::MainMenu{
         .pipeline = registry.pipeline()
@@ -150,7 +177,42 @@ int main() {
                         .with<components::scenes::Common>()
                         .build() });
 
-    // NOTE: the system definition order is jumbled in order to specify the working of custom phases
+    registry.system()
+        .kind<components::phases::OnUpdate>()
+        .run([](flecs::iter& iter) {
+            flecs::world registry = iter.world();
+            if (IsKeyPressed(KEY_ONE)) {
+                registry.add<components::ActiveScene, components::scenes::MainMenu>();
+            }
+            if (IsKeyPressed(KEY_TWO)) {
+                registry.add<components::ActiveScene, components::scenes::Game>();
+            }
+            if (WindowShouldClose()) {
+                registry.add<components::events::GameQuitEvent>();
+            }
+        })
+        .add<components::scenes::Common>();
+    registry.system()
+        .kind<components::phases::OnRender_Start>()
+        .run([](flecs::iter& iter) {
+            BeginDrawing();
+            ClearBackground(BLACK);
+        })
+        .add<components::scenes::Common>();
+    registry.system<components::Rectangle, components::Position>()
+        .kind<components::phases::OnRender_Game>()
+        .each([](flecs::entity curr_entity, const components::Rectangle& rect,
+                 const components::Position& pos) {
+            DrawRectangle((int)pos.x, (int)pos.y, (int)rect.width, (int)rect.height, BLUE);
+        })
+        .add<components::scenes::MainMenu>();
+    registry.system<components::Rectangle, components::Position>()
+        .kind<components::phases::OnRender_Game>()
+        .each([](flecs::entity curr_entity, const components::Rectangle& rect,
+                 const components::Position& pos) {
+            DrawRectangle((int)pos.x, (int)pos.y, (int)rect.width, (int)rect.height, RED);
+        })
+        .add<components::scenes::Game>();
     registry.system<components::Text, components::Position>()
         .kind<components::phases::OnRender_UI>()
         .each([](flecs::entity curr_entity, const components::Text& text,
@@ -185,41 +247,8 @@ int main() {
         })
         .add<components::scenes::Common>();
     registry.system()
-        .kind<components::phases::OnUpdate>()
-        .run([](flecs::iter& iter) {
-            flecs::world registry = iter.world();
-            if (IsKeyPressed(KEY_ONE)) {
-                registry.add<components::ActiveScene, components::scenes::MainMenu>();
-            }
-            if (IsKeyPressed(KEY_TWO)) {
-                registry.add<components::ActiveScene, components::scenes::Game>();
-            }
-        })
-        .add<components::scenes::Common>();
-    registry.system<components::Rectangle, components::Position>()
-        .kind<components::phases::OnRender_Game>()
-        .each([](flecs::entity curr_entity, const components::Rectangle& rect,
-                 const components::Position& pos) {
-            DrawRectangle((int)pos.x, (int)pos.y, (int)rect.width, (int)rect.height, BLUE);
-        })
-        .add<components::scenes::MainMenu>();
-    registry.system<components::Rectangle, components::Position>()
-        .kind<components::phases::OnRender_Game>()
-        .each([](flecs::entity curr_entity, const components::Rectangle& rect,
-                 const components::Position& pos) {
-            DrawRectangle((int)pos.x, (int)pos.y, (int)rect.width, (int)rect.height, RED);
-        })
-        .add<components::scenes::Game>();
-    registry.system()
         .kind<components::phases::OnRender_Finish>()
         .run([](flecs::iter& iter) { EndDrawing(); })
-        .add<components::scenes::Common>();
-    registry.system()
-        .kind<components::phases::OnRender_Start>()
-        .run([](flecs::iter& iter) {
-            BeginDrawing();
-            ClearBackground(BLACK);
-        })
         .add<components::scenes::Common>();
 
     registry.add<components::ActiveScene, components::scenes::MainMenu>();

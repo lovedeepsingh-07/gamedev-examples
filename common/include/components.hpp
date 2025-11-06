@@ -33,6 +33,9 @@ namespace components {
             std::array<Font, 1> font_list;
         };
     };
+    namespace events {
+        struct GameQuitEvent {};
+    };
     struct Position {
         float x;
         float y;
